@@ -18,6 +18,7 @@ import com.example.abhishek.sharerides.R;
 import com.example.abhishek.sharerides.activities.MainActivity;
 import com.example.abhishek.sharerides.helpers.CustomToast;
 import com.example.abhishek.sharerides.helpers.Utils;
+import com.example.abhishek.sharerides.models.User;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +36,7 @@ public class SignUp_Fragment extends Fragment {
 
     private static View view;
     private Unbinder unbinder;
+    private User user;
 
     @BindView(R.id.first_name) EditText et_first_name;
     @BindView(R.id.last_name) EditText et_last_name;
@@ -53,6 +55,7 @@ public class SignUp_Fragment extends Fragment {
         view = inflater.inflate(R.layout.signup_layout, container, false);
 
         unbinder = ButterKnife.bind(this, view);
+        user = new User();
 
         return view;
     }
@@ -88,24 +91,30 @@ public class SignUp_Fragment extends Fragment {
      */
     private void validateSignUpFormFields() {
 
-        String getFirstName         = et_first_name.getText().toString();
-        String getLastName          = et_last_name.getText().toString();
-        String getEmailId           = et_signup_email_id.getText().toString();
-        String getMobileNumber      = et_mobile_number.getText().toString();
-        String getPassword          = et_signup_password.getText().toString();
-        String getConfirmPassword   = et_signup_confirm_password.getText().toString();
+        String firstName         = et_first_name.getText().toString();
+        String lastName          = et_last_name.getText().toString();
+        String emailId           = et_signup_email_id.getText().toString();
+        String mobileNumber      = et_mobile_number.getText().toString();
+        String password          = et_signup_password.getText().toString();
+        String confirmPassword   = et_signup_confirm_password.getText().toString();
+
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setMobileNumber(mobileNumber);
+        user.setEmailId(emailId);
+        user.setPassword(password);
 
         // Pattern match for email id
         Pattern p = Pattern.compile(Utils.regEx);
-        Matcher m = p.matcher(getEmailId);
+        Matcher m = p.matcher(emailId);
 
-        if (getFirstName.equals("") || getFirstName.length() == 0
-                || getLastName.equals("") || getLastName.length() == 0
-                || getEmailId.equals("") || getEmailId.length() == 0
-                || getMobileNumber.equals("") || getMobileNumber.length() == 0
-                || getPassword.equals("") || getPassword.length() == 0
-                || getConfirmPassword.equals("")
-                || getConfirmPassword.length() == 0) {
+        if (firstName.equals("") || firstName.length() == 0
+                || lastName.equals("") || lastName.length() == 0
+                || emailId.equals("") || emailId.length() == 0
+                || mobileNumber.equals("") || mobileNumber.length() == 0
+                || password.equals("") || password.length() == 0
+                || confirmPassword.equals("")
+                || confirmPassword.length() == 0) {
 
             new CustomToast().Show_Toast(getActivity(), view, getString(R.string.required_all_fields_error));
 
@@ -113,7 +122,7 @@ public class SignUp_Fragment extends Fragment {
 
             new CustomToast().Show_Toast(getActivity(), view, getString(R.string.invalid_emailid_error));
 
-        } else if (!getConfirmPassword.equals(getPassword)) {
+        } else if (!confirmPassword.equals(confirmPassword)) {
 
             new CustomToast().Show_Toast(getActivity(), view, getString(R.string.password_not_match));
 
@@ -132,6 +141,13 @@ public class SignUp_Fragment extends Fragment {
      * Process SignUp task after successful validation
      */
     private void processSignUpAction(){
+
+        Log.d("First Name",user.getFirstName());
+        Log.d("Last Name", user.getLastName());
+        Log.d("Mobile Number", user.getMobileNumber());
+        Log.d("Email ID", user.getEmailId());
+        Log.d("Password", user.getPassword());
+
         Toast.makeText(getActivity(), "SignUp Success", Toast.LENGTH_SHORT).show();
     }
 }
