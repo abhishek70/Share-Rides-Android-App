@@ -5,6 +5,7 @@ import android.app.Application;
 import com.example.abhishek.sharerides.helpers.Configs;
 import com.parse.Parse;
 import com.parse.ParseACL;
+import com.parse.ParseUser;
 
 /**
  * Created by abhishekdesai on 6/6/16.
@@ -16,7 +17,7 @@ public class StarterApplication extends Application {
 
         super.onCreate();
 
-        //Enable Local Datastore.
+        // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
 
         //Add your initialization code here
@@ -27,7 +28,7 @@ public class StarterApplication extends Application {
                 .build()
         );
 
-        //ParseUser.enableAutomaticUser();
+        ParseUser.enableAutomaticUser();
         ParseACL defaultACL = new ParseACL();
 
         //Optinally enable public read access.

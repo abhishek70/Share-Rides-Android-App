@@ -11,6 +11,11 @@ import android.widget.ImageView;
 import com.example.abhishek.sharerides.R;
 import com.example.abhishek.sharerides.fragments.Login_Fragment;
 import com.example.abhishek.sharerides.helpers.Utils;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.parse.SignUpCallback;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,6 +41,25 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.frameContainer, new Login_Fragment(), Utils.LOGIN_FRAGMENT)
                     .commit();
         }
+
+        /*
+        ParseUser user = new ParseUser();
+        user.setUsername("my name");
+        user.setPassword("my pass");
+        user.setEmail("email@example.com");
+
+        // other fields can be set just like with ParseObject
+        user.put("phone", "650-253-0000");
+
+        user.signUpInBackground(new SignUpCallback() {
+            public void done(ParseException e) {
+                if (e == null) {
+                    Log.d("Success", "Success");
+                } else {
+                    Log.d("Fail", e.toString());
+                }
+            }
+        });*/
 
     }
 

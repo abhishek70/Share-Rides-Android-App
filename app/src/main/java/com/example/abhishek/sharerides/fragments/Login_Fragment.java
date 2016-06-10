@@ -1,5 +1,6 @@
 package com.example.abhishek.sharerides.fragments;
 
+import android.app.ProgressDialog;
 import android.content.res.ColorStateList;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
@@ -25,6 +26,9 @@ import android.widget.Toast;
 import com.example.abhishek.sharerides.R;
 import com.example.abhishek.sharerides.helpers.CustomToast;
 import com.example.abhishek.sharerides.helpers.Utils;
+import com.parse.LogInCallback;
+import com.parse.ParseException;
+import com.parse.ParseUser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +49,7 @@ public class Login_Fragment extends Fragment {
     private static Animation shakeAnimation;
     private static FragmentManager fragmentManager;
     private Unbinder unbinder;
+    private ProgressDialog progressDialog;
 
     @BindView(R.id.login_emailid) EditText et_login_emailid;
     @BindView(R.id.login_password) EditText et_login_password;
@@ -152,6 +157,7 @@ public class Login_Fragment extends Fragment {
         } else {
 
             // Process
+            showCustomProgress(true);
             processLoginAction(getEmailId, getPassword);
 
         }
@@ -162,8 +168,40 @@ public class Login_Fragment extends Fragment {
      * Process Login task after successful validation
      */
     private void processLoginAction(String emailId, String password){
-        Log.d("Email Id", emailId);
-        Toast.makeText(getActivity(), "Login Success", Toast.LENGTH_SHORT).show();
+
+        ParseUser.logInInBackground(emailId, password, new LogInCallback() {
+            @Override
+            public void done(ParseUser user, ParseException e) {
+                if(user != null && e == null) {
+
+                    Log.i("LogInSuccess", "LogInSuccess");
+
+                    // Create Dashboard and take user to that dashboard activity
+
+                } else {
+
+                    Toast.makeText(getContext(), e.getMessage(),Toast.LENGTH_LONG).show();
+
+                }
+
+                showCustomProgress(false);
+            }
+        });
+    }
+
+    /**
+     * Shows the custom progress UI after login.
+     */
+    private void showCustomProgress(final boolean show)
+    {
+        if(show) {
+            progressDialog = new ProgressDialog(getActivity(), R.style.AppTheme_Dark_Dialog);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Authenticating...");
+            progressDialog.show();
+        } else {
+            progressDialog.dismiss();
+        }
     }
 
 }
