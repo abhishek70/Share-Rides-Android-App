@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 .findFragmentByTag(Utils.FORGOTPASSWORD_FRAGMENT);
 
 
-        // Future Enhancment : Add Dialog Builder to take confirmation from the User
+        // Future Enhancement : Add Dialog Builder to take confirmation from the User
 
         if (SignUp_Fragment != null) {
             replaceLoginFragment();

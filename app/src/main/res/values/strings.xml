@@ -27,4 +27,6 @@
     <string name="required_all_fields_error">All fields are required.</string>
     <string name="password_not_match">Both password doesn\'t match.</string>
     <string name="label_terms">Please select Terms and Conditions.</string>
+    <string name="driver">Driver</string>
+    <string name="rider">Rider</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.abhishek.sharerides.fragments;
 
+import android.app.ProgressDialog;
 import android.content.res.ColorStateList;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,12 +21,20 @@ import com.example.abhishek.sharerides.activities.MainActivity;
 import com.example.abhishek.sharerides.helpers.CustomToast;
 import com.example.abhishek.sharerides.helpers.Utils;
 import com.example.abhishek.sharerides.models.User;
+import com.parse.ParseException;
+import com.parse.ParseUser;
+import com.parse.SignUpCallback;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
@@ -37,6 +47,8 @@ public class SignUp_Fragment extends Fragment {
     private static View view;
     private Unbinder unbinder;
     private User user;
+    private String userType=Utils.DRIVER;
+    private ProgressDialog progressDialog;
 
     @BindView(R.id.first_name) EditText et_first_name;
     @BindView(R.id.last_name) EditText et_last_name;
@@ -47,6 +59,7 @@ public class SignUp_Fragment extends Fragment {
     @BindView(R.id.login) TextView tv_login;
     @BindView(R.id.sign_up_btn) Button b_sign_up_btn;
     @BindView(R.id.terms_conditions) CheckBox cb_terms_conditions;
+    @BindView(R.id.userType) Switch s_user_type;
 
 
     @Override
@@ -86,6 +99,14 @@ public class SignUp_Fragment extends Fragment {
         }
     }
 
+    @OnCheckedChanged(R.id.userType)
+    public void onSwitchChanged(boolean isChecked){
+       userType = Utils.DRIVER;
+        if(isChecked) {
+            userType = Utils.RIDER;
+        }
+    }
+
     /*
      * Form Validation
      */
@@ -103,6 +124,7 @@ public class SignUp_Fragment extends Fragment {
         user.setMobileNumber(mobileNumber);
         user.setEmailId(emailId);
         user.setPassword(password);
+        user.setUserType(userType);
 
         // Pattern match for email id
         Pattern p = Pattern.compile(Utils.regEx);
@@ -122,7 +144,7 @@ public class SignUp_Fragment extends Fragment {
 
             new CustomToast().Show_Toast(getActivity(), view, getString(R.string.invalid_emailid_error));
 
-        } else if (!confirmPassword.equals(confirmPassword)) {
+        } else if (!confirmPassword.equals(password)) {
 
             new CustomToast().Show_Toast(getActivity(), view, getString(R.string.password_not_match));
 
@@ -142,12 +164,81 @@ public class SignUp_Fragment extends Fragment {
      */
     private void processSignUpAction(){
 
-        Log.d("First Name",user.getFirstName());
+        /*Log.d("First Name",user.getFirstName());
         Log.d("Last Name", user.getLastName());
         Log.d("Mobile Number", user.getMobileNumber());
         Log.d("Email ID", user.getEmailId());
-        Log.d("Password", user.getPassword());
+        Log.d("Password", user.getPassword());*/
 
-        Toast.makeText(getActivity(), "SignUp Success", Toast.LENGTH_SHORT).show();
+        Log.d("UserData", User.toJSON(user));
+
+        showCustomProgress(true);
+
+        ParseUser userData = new ParseUser();
+
+        userData.setUsername(user.getEmailId());
+        userData.setEmail(user.getEmailId());
+        userData.setPassword(user.getPassword());
+
+        userData.put("firstName",user.getFirstName());
+        userData.put("lastName",user.getLastName());
+        userData.put("mobileNumber", user.getMobileNumber());
+        userData.put("userType", user.getUserType());
+
+        userData.signUpInBackground(new SignUpCallback() {
+            @Override
+            public void done(ParseException e) {
+                if(e == null) {
+                    Log.i("Sign Up","Sign Up Operation was Successful");
+                    signUpResult(Utils.SUCCESS_CODE, "Success");
+                } else {
+                    e.printStackTrace();
+                    Log.i("Message", e.getMessage());
+                    Log.i("Code", String.valueOf(e.getCode()));
+                    signUpResult(Utils.ERROR_CODE, e.getMessage());
+                }
+            }
+        });
+
+
+        //Toast.makeText(getActivity(), "SignUp Success", Toast.LENGTH_SHORT).show();
+    }
+
+    /*
+     * Sign Up Result
+     */
+    private void signUpResult(Integer action, String msg) {
+
+        showCustomProgress(false);
+
+        if(action.equals(Utils.SUCCESS_CODE)) {
+            new CustomToast().Show_Toast(getActivity(), view, "SignUp Successful");
+
+            // Load Login Fragment
+            new MainActivity().replaceLoginFragment();
+
+            // Future Improvement : After sign up just log the user in.
+
+        } else if(action.equals(Utils.ERROR_CODE)) {
+            //Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
+            new CustomToast().Show_Toast(getActivity(), view, msg);
+        }
+
+    }
+
+    /**
+     * Shows the custom progress UI after SignUp.
+     */
+    private void showCustomProgress(final boolean show)
+    {
+        if(show) {
+            progressDialog = new ProgressDialog(getActivity(), R.style.AppTheme_Dark_Dialog);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage("Creating...");
+            progressDialog.show();
+        } else {
+            progressDialog.dismiss();
+        }
     }
 }
