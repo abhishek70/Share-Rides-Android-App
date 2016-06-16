@@ -1,8 +1,7 @@
 package com.example.abhishek.sharerides.fragments;
 
 import android.app.ProgressDialog;
-import android.content.res.ColorStateList;
-import android.content.res.XmlResourceParser;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,7 +16,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -175,16 +173,20 @@ public class Login_Fragment extends Fragment {
                 if(user != null && e == null) {
 
                     Log.i("LogInSuccess", "LogInSuccess");
+                    showCustomProgress(false);
 
                     // Create Dashboard and take user to that dashboard activity
+//                    Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
+//                    startActivity(dashboard);
 
                 } else {
 
+                    showCustomProgress(false);
                     Toast.makeText(getContext(), e.getMessage(),Toast.LENGTH_LONG).show();
 
                 }
 
-                showCustomProgress(false);
+
             }
         });
     }
@@ -198,6 +200,7 @@ public class Login_Fragment extends Fragment {
             progressDialog = new ProgressDialog(getActivity(), R.style.AppTheme_Dark_Dialog);
             progressDialog.setIndeterminate(true);
             progressDialog.setMessage("Authenticating...");
+            progressDialog.setCancelable(false);
             progressDialog.show();
         } else {
             progressDialog.dismiss();

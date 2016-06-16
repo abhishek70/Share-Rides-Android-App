@@ -1,5 +1,6 @@
 package com.example.abhishek.sharerides.activities;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -60,6 +61,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });*/
+
+        // Check for the user login session if login then take them to dashboard
+        if(ParseUser.getCurrentUser() != null) {
+            //Start the Dashboard Activity
+//            Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
+//            startActivity(dashboard);
+        }
 
     }
 
