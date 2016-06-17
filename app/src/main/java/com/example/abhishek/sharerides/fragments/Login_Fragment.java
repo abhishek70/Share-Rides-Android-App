@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.abhishek.sharerides.R;
+import com.example.abhishek.sharerides.activities.DashboardActivity;
 import com.example.abhishek.sharerides.helpers.CustomToast;
 import com.example.abhishek.sharerides.helpers.Utils;
 import com.parse.LogInCallback;
@@ -176,8 +177,9 @@ public class Login_Fragment extends Fragment {
                     showCustomProgress(false);
 
                     // Create Dashboard and take user to that dashboard activity
-//                    Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
-//                    startActivity(dashboard);
+                    Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
+                    startActivity(dashboard);
+                    getActivity().finish();
 
                 } else {
 

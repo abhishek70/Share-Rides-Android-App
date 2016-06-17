@@ -35,38 +35,21 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         fragmentManager = getSupportFragmentManager();
 
+
+        // Check for the user login session if login then take them to dashboard
+        /*if(ParseUser.getCurrentUser() != null) {
+            Log.d("Current User","Current user is login");
+            //Start the Dashboard Activity
+            Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
+            startActivity(dashboard);
+        }*/
+
         // Load Login Fragment if savedinstancestate is null
         if (savedInstanceState == null) {
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.frameContainer, new Login_Fragment(), Utils.LOGIN_FRAGMENT)
                     .commit();
-        }
-
-        /*
-        ParseUser user = new ParseUser();
-        user.setUsername("my name");
-        user.setPassword("my pass");
-        user.setEmail("email@example.com");
-
-        // other fields can be set just like with ParseObject
-        user.put("phone", "650-253-0000");
-
-        user.signUpInBackground(new SignUpCallback() {
-            public void done(ParseException e) {
-                if (e == null) {
-                    Log.d("Success", "Success");
-                } else {
-                    Log.d("Fail", e.toString());
-                }
-            }
-        });*/
-
-        // Check for the user login session if login then take them to dashboard
-        if(ParseUser.getCurrentUser() != null) {
-            //Start the Dashboard Activity
-//            Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
-//            startActivity(dashboard);
         }
 
     }
@@ -109,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
             replaceLoginFragment();
         } else {
             super.onBackPressed();
+            closeApplication();
         }
     }
 }
