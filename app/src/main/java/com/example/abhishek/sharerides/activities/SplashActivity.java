@@ -4,6 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.BundleCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+import com.parse.FindCallback;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 /**
  * Created by abhishekdesai on 6/9/16.
@@ -15,8 +20,29 @@ public class SplashActivity extends AppCompatActivity {
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = new Intent(this, MainActivity.class);
+
+        /*Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
-        finish();
+        finish();*/
+
+        ParseUser currentUser = ParseUser.getCurrentUser();
+
+        if (currentUser != null) {
+
+            Log.d("Dashboard","DashboardActivity Goes Here");
+
+            // Create Dashboard and take user to that dashboard activity
+            Intent dashboard = new Intent(this, DashboardActivity.class);
+            startActivity(dashboard);
+            finish();
+
+        } else {
+
+            Log.d("Main","MainActivity Goes Here");
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
     }
 }

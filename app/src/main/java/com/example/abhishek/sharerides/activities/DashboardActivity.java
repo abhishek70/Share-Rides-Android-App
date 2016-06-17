@@ -81,7 +81,6 @@ public class DashboardActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             return true;
         } else if (id == R.id.action_signout) {
-            showCustomProgress(true);
             signOff();
         }
 
@@ -116,17 +115,24 @@ public class DashboardActivity extends AppCompatActivity
 
     public void signOff()
     {
+        showCustomProgress(true);
+
+        /*Intent intent = new Intent(this, MainActivity.class);
+        showCustomProgress(false);
+        startActivity(intent);
+        this.finish();*/
+
         ParseUser.logOutInBackground(new LogOutCallback() {
             @Override
             public void done(ParseException e) {
                 if(e == null) {
-                    showCustomProgress(false);
+
                     Log.d("signOff","Logging out the user");
                     Intent backToLogin = new Intent(getApplicationContext(), MainActivity.class);
+                    showCustomProgress(false);
                     startActivity(backToLogin);
+
                     finish();
-                } else {
-                    e.printStackTrace();
                 }
             }
         });
@@ -135,15 +141,17 @@ public class DashboardActivity extends AppCompatActivity
     /**
      * Shows the custom progress UI after Sign Up.
      */
-    private void showCustomProgress(final boolean show)
+    private void showCustomProgress(boolean show)
     {
         if(show) {
-            progressDialog = new ProgressDialog(DashboardActivity.this, R.style.AppTheme_Dark_Dialog_New);
+            Log.d("Show", "Dialog Show Callled");
+            progressDialog = new ProgressDialog(DashboardActivity.this, R.style.AppTheme_Dark_Dialog);
             progressDialog.setIndeterminate(true);
             progressDialog.setMessage("Logging Out...");
             progressDialog.setCancelable(false);
             progressDialog.show();
         } else {
+            Log.d("Show", "Dismiss");
             progressDialog.dismiss();
         }
     }

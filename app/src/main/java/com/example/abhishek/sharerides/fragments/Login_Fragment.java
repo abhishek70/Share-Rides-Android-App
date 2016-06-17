@@ -174,10 +174,10 @@ public class Login_Fragment extends Fragment {
                 if(user != null && e == null) {
 
                     Log.i("LogInSuccess", "LogInSuccess");
-                    showCustomProgress(false);
 
                     // Create Dashboard and take user to that dashboard activity
                     Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
+                    showCustomProgress(false);
                     startActivity(dashboard);
                     getActivity().finish();
 
