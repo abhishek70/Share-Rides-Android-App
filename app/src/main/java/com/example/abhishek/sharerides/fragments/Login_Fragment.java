@@ -78,14 +78,17 @@ public class Login_Fragment extends Fragment {
         unbinder.unbind();
     }
 
+    /*
+     * Actions
+     */
     @OnClick({ R.id.forgot_password, R.id.create_account, R.id.login_btn})
     public void actions(View view) {
 
         switch (view.getId()) {
 
+            // Load Forgot Password Fragment
             case R.id.forgot_password:
 
-                // Load Forgot Password Fragment
                 fragmentManager
                         .beginTransaction()
                         .setCustomAnimations(R.anim.right_enter, R.anim.left_out)
@@ -94,9 +97,9 @@ public class Login_Fragment extends Fragment {
                                 Utils.FORGOTPASSWORD_FRAGMENT).commit();
                 break;
 
+            // Load Sign Up Fragment
             case R.id.create_account:
 
-                // Load Sign Up Fragment
                 fragmentManager
                         .beginTransaction()
                         .setCustomAnimations(R.anim.right_enter, R.anim.left_out)
@@ -104,6 +107,7 @@ public class Login_Fragment extends Fragment {
                                 Utils.SIGNUP_FRAGMENT).commit();
                 break;
 
+            // Validate the login form and process login action
             case R.id.login_btn:
                 validateLoginFormFields();
                 break;
@@ -111,6 +115,9 @@ public class Login_Fragment extends Fragment {
 
     }
 
+    /*
+     * Functionality for showing and hiding password
+     */
     @OnCheckedChanged(R.id.show_hide_password)
     public void showPassword(){
 
@@ -155,8 +162,7 @@ public class Login_Fragment extends Fragment {
 
         } else {
 
-            // Process
-            showCustomProgress(true);
+            // Process Login Action
             processLoginAction(getEmailId, getPassword);
 
         }
@@ -168,12 +174,12 @@ public class Login_Fragment extends Fragment {
      */
     private void processLoginAction(String emailId, String password){
 
+        showCustomProgress(true);
+
         ParseUser.logInInBackground(emailId, password, new LogInCallback() {
             @Override
             public void done(ParseUser user, ParseException e) {
                 if(user != null && e == null) {
-
-                    Log.i("LogInSuccess", "LogInSuccess");
 
                     // Create Dashboard and take user to that dashboard activity
                     Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
@@ -183,6 +189,7 @@ public class Login_Fragment extends Fragment {
 
                 } else {
 
+                    // Error : Show the Error Message
                     showCustomProgress(false);
                     Toast.makeText(getContext(), e.getMessage(),Toast.LENGTH_LONG).show();
 

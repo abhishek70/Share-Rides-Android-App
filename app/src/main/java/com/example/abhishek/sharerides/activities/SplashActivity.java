@@ -20,16 +20,9 @@ public class SplashActivity extends AppCompatActivity {
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        /*Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish();*/
-
         ParseUser currentUser = ParseUser.getCurrentUser();
 
         if (currentUser != null) {
-
-            Log.d("Dashboard","DashboardActivity Goes Here");
 
             // Create Dashboard and take user to that dashboard activity
             Intent dashboard = new Intent(this, DashboardActivity.class);
@@ -38,7 +31,6 @@ public class SplashActivity extends AppCompatActivity {
 
         } else {
 
-            Log.d("Main","MainActivity Goes Here");
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();

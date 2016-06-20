@@ -84,21 +84,24 @@ public class SignUp_Fragment extends Fragment {
 
         switch (view.getId()) {
 
+            // Load Login Fragment
             case R.id.login:
 
-                // Load Login Fragment
                 new MainActivity().replaceLoginFragment();
                 break;
 
+            // Validation the Sign Up form and process the signup action
             case R.id.sign_up_btn:
 
-                // Validation
                 validateSignUpFormFields();
                 break;
 
         }
     }
 
+    /*
+     * Set or Get the User Type (Rider, Driver)
+     */
     @OnCheckedChanged(R.id.userType)
     public void onSwitchChanged(boolean isChecked){
        userType = Utils.DRIVER;
@@ -164,14 +167,6 @@ public class SignUp_Fragment extends Fragment {
      */
     private void processSignUpAction(){
 
-        /*Log.d("First Name",user.getFirstName());
-        Log.d("Last Name", user.getLastName());
-        Log.d("Mobile Number", user.getMobileNumber());
-        Log.d("Email ID", user.getEmailId());
-        Log.d("Password", user.getPassword());*/
-
-        Log.d("UserData", User.toJSON(user));
-
         showCustomProgress(true);
 
         ParseUser userData = new ParseUser();
@@ -189,19 +184,13 @@ public class SignUp_Fragment extends Fragment {
             @Override
             public void done(ParseException e) {
                 if(e == null) {
-                    Log.i("Sign Up","Sign Up Operation was Successful");
                     signUpResult(Utils.SUCCESS_CODE, "Success");
                 } else {
                     e.printStackTrace();
-                    Log.i("Message", e.getMessage());
-                    Log.i("Code", String.valueOf(e.getCode()));
                     signUpResult(Utils.ERROR_CODE, e.getMessage());
                 }
             }
         });
-
-
-        //Toast.makeText(getActivity(), "SignUp Success", Toast.LENGTH_SHORT).show();
     }
 
     /*
@@ -226,7 +215,7 @@ public class SignUp_Fragment extends Fragment {
 
     }
 
-    /**
+    /*
      * Shows the custom progress UI after SignUp.
      */
     private void showCustomProgress(final boolean show)

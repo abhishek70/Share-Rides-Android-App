@@ -108,7 +108,6 @@ public class ForgotPassword_Fragment extends Fragment {
      * Process Forgot Password task after successful validation
      */
     private void processForgotPasswordAction(String emailId){
-        Log.d("Email Id", emailId);
-        Toast.makeText(getActivity(), "Forgot Password Success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Forgot Password Action", Toast.LENGTH_SHORT).show();
     }
 }

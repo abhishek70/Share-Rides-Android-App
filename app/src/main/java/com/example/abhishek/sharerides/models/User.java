@@ -5,8 +5,6 @@ import android.support.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-
 /**
  * Created by abhishekdesai on 6/8/16.
  */

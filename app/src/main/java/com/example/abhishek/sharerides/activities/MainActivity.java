@@ -35,15 +35,6 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         fragmentManager = getSupportFragmentManager();
 
-
-        // Check for the user login session if login then take them to dashboard
-        /*if(ParseUser.getCurrentUser() != null) {
-            Log.d("Current User","Current user is login");
-            //Start the Dashboard Activity
-            Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
-            startActivity(dashboard);
-        }*/
-
         // Load Login Fragment if savedinstancestate is null
         if (savedInstanceState == null) {
             fragmentManager
@@ -59,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
      */
     @OnClick(R.id.close_activity)
     public void closeApplication() {
-        Log.d("closeApplication","Close the Application");
         finish();
     }
 
@@ -84,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 .findFragmentByTag(Utils.FORGOTPASSWORD_FRAGMENT);
 
 
-        // Future Enhancement : Add Dialog Builder to take confirmation from the User
+        // Future Enhancement : Add Dialog Builder to take confirmation from the User before closing the app
 
         if (SignUp_Fragment != null) {
             replaceLoginFragment();
