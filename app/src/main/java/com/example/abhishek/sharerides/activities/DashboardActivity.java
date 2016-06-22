@@ -49,11 +49,10 @@ public class DashboardActivity extends AppCompatActivity
 
     public ProgressDialog progressDialog;
 
-    SupportMapFragment sMapFragment;
-
-    private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
+    SupportMapFragment mFragment;
+    GoogleMap mGoogleMap;
+    LocationRequest mLocationRequest;
+    GoogleApiClient mGoogleApiClient;
     Marker currLocationMarker;
     LatLng latLng;
 
@@ -62,7 +61,7 @@ public class DashboardActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        sMapFragment = SupportMapFragment.newInstance();
+        mFragment = SupportMapFragment.newInstance();
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -86,10 +85,9 @@ public class DashboardActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        sMapFragment.getMapAsync(this);
-
+        mFragment.getMapAsync(this);
         android.support.v4.app.FragmentManager sfm = getSupportFragmentManager();
-        sfm.beginTransaction().add(R.id.riderMap, sMapFragment).commit();
+        sfm.beginTransaction().add(R.id.riderMap, mFragment).commit();
 
 
     }
@@ -201,9 +199,10 @@ public class DashboardActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        mMap = googleMap;
+        mGoogleMap = googleMap;
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -213,20 +212,20 @@ public class DashboardActivity extends AppCompatActivity
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mMap.setMyLocationEnabled(true);
+        mGoogleMap.setMyLocationEnabled(true);
 
         buildGoogleApiClient();
+
         mGoogleApiClient.connect();
 
-        /*
         // Add a marker in Sydney and move the camera
-        LatLng currentLoc = new LatLng(37.270005, -121.960221);
-        mMap.addMarker(new MarkerOptions().position(currentLoc).title("Campbell"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, 17));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(17), 2000, null);*/
+        /*LatLng sydney = new LatLng(-34, 151);
+        mGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
     }
 
     protected synchronized void buildGoogleApiClient() {
+        Log.d("buildGoogleApiClient", "BuildGoogleApiClient Called");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -237,7 +236,15 @@ public class DashboardActivity extends AppCompatActivity
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        Log.d("onConnected", "OnConnected Called");
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000); //5 seconds
+        mLocationRequest.setFastestInterval(3000); //3 seconds
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        //mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -247,6 +254,8 @@ public class DashboardActivity extends AppCompatActivity
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if (mLastLocation != null) {
@@ -257,19 +266,13 @@ public class DashboardActivity extends AppCompatActivity
             markerOptions.position(latLng);
             markerOptions.title("Current Position");
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            currLocationMarker = mMap.addMarker(markerOptions);
+            currLocationMarker = mGoogleMap.addMarker(markerOptions);
         }
+    }
 
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        //mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        //mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
-        mLocationRequest.setInterval(1000); // Update location every second
-        mLocationRequest.setFastestInterval(3000); //3 seconds
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
-
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("onConnectionSuspended", "OnConnectionSuspended Called");
     }
 
 
@@ -286,35 +289,24 @@ public class DashboardActivity extends AppCompatActivity
         markerOptions.position(latLng);
         markerOptions.title("Current Position");
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        currLocationMarker = mMap.addMarker(markerOptions);
+        currLocationMarker = mGoogleMap.addMarker(markerOptions);
 
+        Log.d("Location Changed", "Location Changed");
 
         //zoom to current position:
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng).zoom(14).build();
 
-        mMap.animateCamera(CameraUpdateFactory
+        mGoogleMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
 
         //If you only need one location, unregister the listener
         //LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        buildGoogleApiClient();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d("OnConnectionFailed", "OnConnectionFailed Called");
     }
 
     @Override
