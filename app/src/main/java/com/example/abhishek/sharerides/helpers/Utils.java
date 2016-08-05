@@ -16,5 +16,12 @@ public class Utils {
     public static final String RIDER                    = "Rider";
     public static final Integer SUCCESS_CODE            = 1;
     public static final Integer ERROR_CODE              = 0;
+    public static final String LOGOUT                   = "Logging Out...";
+
+    //Rider Map Constants
+    public static final String SET_PICKUP_LOCATION      = "SET PICKUP LOCATION";
+    public static final String CANCEL_RIDE              = "CANCEL RIDE";
+    public static final String SEARCHING_DRIVER         = "Searching Driver...";
+    public static final String CANCELLING_REQUEST       = "Cancelling Request...";
 
 }

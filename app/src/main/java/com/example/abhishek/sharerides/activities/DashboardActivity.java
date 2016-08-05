@@ -9,21 +9,21 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-
 import com.example.abhishek.sharerides.R;
+import com.example.abhishek.sharerides.helpers.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -39,9 +39,16 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.FindCallback;
 import com.parse.LogOutCallback;
+import com.parse.ParseACL;
 import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
+
+import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -62,6 +69,9 @@ public class DashboardActivity extends AppCompatActivity implements
     private LocationRequest mLocationRequest;
     private long UPDATE_INTERVAL = 60000;
     private long FASTEST_INTERVAL = 5000;
+
+    private MarkerOptions markerOptions;
+    private LatLng latLng;
 
     /**
 	 * Define a request code to send to Google Play services This code is
@@ -282,23 +292,31 @@ public class DashboardActivity extends AppCompatActivity implements
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (location != null) {
             Toast.makeText(this, "GPS location was found!", Toast.LENGTH_SHORT).show();
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+            // Getting user's current location
+            latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+            // Zooming
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+
+            // Taking user to its location with animate camera
             map.animateCamera(cameraUpdate);
-            MarkerOptions markerOptions = new MarkerOptions();
-            map.clear();
-            markerOptions.position(latLng);
-            markerOptions.title("SET PICKUP LOCATION");
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
-            //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            map.addMarker(markerOptions);
+
+            // Setting up marker
+            setUpMarker(Utils.SET_PICKUP_LOCATION);
+
         } else {
+
             Toast.makeText(this, "Current location was null, enable GPS on emulator!", Toast.LENGTH_SHORT).show();
+
         }
+
+
         startLocationUpdates();
     }
 
     /**
+     *
      * Set Location Updates
      */
     protected void startLocationUpdates() {
@@ -381,18 +399,6 @@ public class DashboardActivity extends AppCompatActivity implements
                     "Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
         }
     }
-
-    /**
-     * Called when the user click on the Marker's Info Window
-     * @param marker
-     */
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(getApplicationContext(),
-                "Info Window clicked@" + marker.getId(),
-                Toast.LENGTH_SHORT).show();
-    }
-
 
     /**
      * Define a DialogFragment that displays the error dialog
@@ -504,7 +510,7 @@ public class DashboardActivity extends AppCompatActivity implements
      * Logging out user action
      */
     public void signOff() {
-        showCustomProgress(true);
+        showCustomProgress(true, Utils.LOGOUT);
 
         ParseUser.logOutInBackground(new LogOutCallback() {
             @Override
@@ -512,7 +518,7 @@ public class DashboardActivity extends AppCompatActivity implements
                 if (e == null) {
 
                     Intent backToLogin = new Intent(getApplicationContext(), MainActivity.class);
-                    showCustomProgress(false);
+                    showCustomProgress(false, Utils.LOGOUT);
                     startActivity(backToLogin);
 
                     finish();
@@ -521,19 +527,142 @@ public class DashboardActivity extends AppCompatActivity implements
         });
     }
 
+
     /**
-     * Shows the custom progress UI after Sign Up.
+     * Shows the custom progress UI
+     * @param show
+     * @param message
      */
-    private void showCustomProgress(boolean show) {
+    private void showCustomProgress(boolean show, String message) {
         if (show) {
             progressDialog = new ProgressDialog(DashboardActivity.this, R.style.AppTheme_Dark_Dialog);
             progressDialog.setIndeterminate(true);
-            progressDialog.setMessage("Logging Out...");
+            progressDialog.setMessage(message);
             progressDialog.setCancelable(false);
             progressDialog.show();
         } else {
             progressDialog.dismiss();
         }
+    }
+
+
+    /**
+     * Called when the user click on the Marker's Info Window
+     * @param marker
+     */
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+        Toast.makeText(getApplicationContext(),
+                "Info Window clicked@ At" + marker.getTitle(),
+                Toast.LENGTH_SHORT).show();
+
+        String action = marker.getTitle();
+
+        if(!action.equals(Utils.CANCEL_RIDE)) {
+
+            // Call func ff the user request for the ride
+            sendDriverRequest();
+
+        } else {
+
+            // Call func if the user wants to cancel the ride request
+            cancelDriverRequest();
+
+        }
+
+    }
+
+
+    /**
+     *  Send Driver's Request to Parse API
+     *
+     */
+    private void sendDriverRequest() {
+
+        showCustomProgress(true, Utils.SEARCHING_DRIVER);
+
+
+        // Calling Parse API for storing rider info
+        ParseObject request = new ParseObject("Requests");
+        request.put("requesterUsername", ParseUser.getCurrentUser().getUsername());
+
+        // Setting Access Control List on Parse
+        ParseACL parseACL = new ParseACL();
+        parseACL.setPublicWriteAccess(true);
+        parseACL.setPublicReadAccess(true);
+        request.setACL(parseACL);
+
+        // Saving operation in background
+        request.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if(e == null) {
+
+                    // Dismiss the custom dialog
+                    showCustomProgress(false, Utils.SEARCHING_DRIVER);
+
+                    // Setup the marker
+                    setUpMarker(Utils.CANCEL_RIDE);
+                }
+            }
+        });
+    }
+
+
+    /**
+     * Cancel Driver's Request to Parse API by deleting the request
+     *
+     */
+    private void cancelDriverRequest() {
+
+        // Show the custom dialog
+        showCustomProgress(true, Utils.CANCELLING_REQUEST);
+
+        // Calling Parse API for Getting and Deleting Data
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Requests");
+        query.whereEqualTo("requesterUsername", ParseUser.getCurrentUser().getUsername());
+
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, ParseException e) {
+
+                if(e == null)
+                {
+                    // Dismiss the custom dialog
+                    showCustomProgress(false, Utils.CANCELLING_REQUEST);
+
+                    // Setup the marker
+                    setUpMarker(Utils.SET_PICKUP_LOCATION);
+
+                    if(objects.size() > 0)
+                    {
+                        for (ParseObject obj : objects)
+                        {
+                            // Parse -  Deleting in background
+                            obj.deleteInBackground();
+                        }
+                    }
+                }
+
+            }
+        });
+
+    }
+
+
+    /**
+     * Shows marker with the custom title
+     * @param title
+     */
+    private void setUpMarker(String title)
+    {
+        markerOptions = new MarkerOptions();
+        map.clear();
+        markerOptions.position(latLng);
+        markerOptions.title(title);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
+        map.addMarker(markerOptions).showInfoWindow();
     }
 
 }
