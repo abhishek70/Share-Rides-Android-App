@@ -40,4 +40,6 @@
 
     <string name="action_example">Example action</string>
     <string name="action_signout">Sign Out</string>
+    <string name="title_activity_view_ride_requests">View Requests</string>
+
 </resources>

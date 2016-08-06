@@ -43,6 +43,7 @@ import com.parse.FindCallback;
 import com.parse.LogOutCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -352,6 +353,7 @@ public class DashboardActivity extends AppCompatActivity implements
                 Double.toString(location.getLongitude());
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
+        latLng = new LatLng(location.getLatitude(), location.getLongitude());
     }
 
 
@@ -593,20 +595,60 @@ public class DashboardActivity extends AppCompatActivity implements
         parseACL.setPublicReadAccess(true);
         request.setACL(parseACL);
 
+
         // Saving operation in background
         request.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
                 if(e == null) {
 
-                    // Dismiss the custom dialog
-                    showCustomProgress(false, Utils.SEARCHING_DRIVER);
+                    // Update Rider Location
+                    updateRiderLocationToParse();
 
                     // Setup the marker
                     setUpMarker(Utils.CANCEL_RIDE);
+
+                    // Dismiss the custom dialog
+                    showCustomProgress(false, Utils.SEARCHING_DRIVER);
                 }
             }
         });
+    }
+
+    /**
+     * Update Rider's Current Location to Parse
+     *
+     */
+    private void updateRiderLocationToParse() {
+
+
+        // Passing Rider's location to Parse
+        final ParseGeoPoint riderLocation = new ParseGeoPoint(latLng.latitude, latLng.longitude);
+
+        // Calling Parse API for Getting and Deleting Data
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Requests");
+        query.whereEqualTo("requesterUsername", ParseUser.getCurrentUser().getUsername());
+
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, ParseException e) {
+
+                if(e == null)
+                {
+                    if(objects.size() > 0)
+                    {
+                        for (ParseObject obj : objects)
+                        {
+                            // Parse - Saving
+                            obj.put("requesterLocation", riderLocation);
+                            obj.saveInBackground();
+                        }
+                    }
+                }
+
+            }
+        });
+
     }
 
 
@@ -651,12 +693,15 @@ public class DashboardActivity extends AppCompatActivity implements
     }
 
 
+
+
+
     /**
      * Shows marker with the custom title
      * @param title
      */
-    private void setUpMarker(String title)
-    {
+    private void setUpMarker(String title) {
+
         markerOptions = new MarkerOptions();
         map.clear();
         markerOptions.position(latLng);

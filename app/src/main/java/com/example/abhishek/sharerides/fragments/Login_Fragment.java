@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.example.abhishek.sharerides.R;
 import com.example.abhishek.sharerides.activities.DashboardActivity;
+import com.example.abhishek.sharerides.activities.ViewRideRequestsActivity;
 import com.example.abhishek.sharerides.helpers.CustomToast;
 import com.example.abhishek.sharerides.helpers.Utils;
 import com.parse.LogInCallback;
@@ -181,8 +182,12 @@ public class Login_Fragment extends Fragment {
             public void done(ParseUser user, ParseException e) {
                 if(user != null && e == null) {
 
+                    Log.d("User Type", user.getString("userType"));
+                    // TODO : Redirect user to correct activity based on the userType
+
                     // Create Dashboard and take user to that dashboard activity
-                    Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
+                    //Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
+                    Intent dashboard = new Intent(getActivity(), ViewRideRequestsActivity.class);
                     showCustomProgress(false);
                     startActivity(dashboard);
                     getActivity().finish();
