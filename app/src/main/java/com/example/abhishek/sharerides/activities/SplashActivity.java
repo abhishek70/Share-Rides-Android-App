@@ -6,6 +6,7 @@ import android.support.v4.app.BundleCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.example.abhishek.sharerides.helpers.Utils;
 import com.parse.FindCallback;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -24,8 +25,17 @@ public class SplashActivity extends AppCompatActivity {
 
         if (currentUser != null) {
 
-            // Create Dashboard and take user to that dashboard activity
-            Intent dashboard = new Intent(this, DashboardActivity.class);
+            /* Create Dashboard Intent and take user to that dashboard activity
+             depending on the user type */
+            String userType = currentUser.getString("userType");
+
+            Intent dashboard;
+
+            if(userType.equals(Utils.DRIVER))
+                dashboard = new Intent(this, ViewRideRequestsActivity.class);
+            else
+                dashboard = new Intent(this, DashboardActivity.class);
+
             startActivity(dashboard);
             finish();
 

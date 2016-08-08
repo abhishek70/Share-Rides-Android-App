@@ -182,12 +182,18 @@ public class Login_Fragment extends Fragment {
             public void done(ParseUser user, ParseException e) {
                 if(user != null && e == null) {
 
-                    Log.d("User Type", user.getString("userType"));
-                    // TODO : Redirect user to correct activity based on the userType
+                    /* Create Dashboard Intent and take user to that dashboard activity
+                       depending on the user type */
+                    String userType = user.getString("userType");
 
-                    // Create Dashboard and take user to that dashboard activity
-                    //Intent dashboard = new Intent(getActivity(), DashboardActivity.class);
-                    Intent dashboard = new Intent(getActivity(), ViewRideRequestsActivity.class);
+                    Intent dashboard;
+
+                    if(userType.equals(Utils.DRIVER))
+                        dashboard = new Intent(getActivity(), ViewRideRequestsActivity.class);
+                    else
+                        dashboard = new Intent(getActivity(), DashboardActivity.class);
+
+
                     showCustomProgress(false);
                     startActivity(dashboard);
                     getActivity().finish();
