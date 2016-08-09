@@ -58,12 +58,14 @@
         <activity
             android:name=".activities.DashboardActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".activities.ViewRideRequestsActivity"
             android:label="@string/title_activity_view_ride_requests"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activities.ViewRideLocationsActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

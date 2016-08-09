@@ -19,6 +19,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -44,6 +46,9 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
 
     private ListView listView;
     private ArrayList<String> listViewData;
+    private ArrayList<String> userNames;
+    private ArrayList<Double> lat;
+    private ArrayList<Double> lng;
     private ArrayAdapter arrayAdapter;
 
     private LocationManager locationManager;
@@ -67,7 +72,10 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
 
         listView = (ListView) findViewById(R.id.listView);
 
-        listViewData = new ArrayList<String>();
+        listViewData  = new ArrayList<String>();
+        userNames     = new ArrayList<String>();
+        lat           = new ArrayList<Double>();
+        lng           = new ArrayList<Double>();
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listViewData);
 
@@ -95,16 +103,24 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
 
 
         listViewData.add("Finding nearby requests...");
-
-
         listView.setAdapter(arrayAdapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                //Intent loc = new Intent(getApplicationContext(), ViewRideLocationsActivity.class);
+                //TODO : Pass the data to the new activity to show rider and driver location
+
+            }
+        });
 
     }
 
     private void updateDriverLocation(Location location) {
 
 
-        ParseGeoPoint userLocation = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
+        final ParseGeoPoint userLocation = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Requests");
         query.whereDoesNotExist("driverUsername");
         query.whereNear("requesterLocation", userLocation);
@@ -118,12 +134,25 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
                     if (objects.size() > 0) {
 
                         listViewData.clear();
+                        userNames.clear();
+                        lat.clear();
+                        lng.clear();
+
 
                         for (ParseObject object : objects) {
 
                             if (object.get("driverUsername") == null) {
 
-                                listViewData.add(object.getString("requesterUsername"));
+                                Double distanceInMiles = userLocation.distanceInMilesTo((ParseGeoPoint) object.get("requesterLocation"));
+
+                                Double distanceOneDP = (double) Math.round(distanceInMiles * 10) / 10;
+
+                                listViewData.add(distanceOneDP.toString() + " Miles ");
+
+                                userNames.add(object.getString("requesterUserName"));
+                                lat.add(object.getParseGeoPoint("requesterLocation").getLatitude());
+                                lng.add(object.getParseGeoPoint("requesterLocation").getLongitude());
+
                             }
 
                         }
