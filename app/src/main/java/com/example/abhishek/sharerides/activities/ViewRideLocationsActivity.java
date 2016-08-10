@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 
@@ -38,14 +41,22 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.FindCallback;
 import com.parse.LogOutCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
+
+import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -67,6 +78,8 @@ public class ViewRideLocationsActivity extends AppCompatActivity implements
 
     private MarkerOptions markerOptions;
     private LatLng latLng;
+    private Intent loc;
+    private Button acceptRequest;
 
     /**
      * Define a request code to send to Google Play services This code is
@@ -90,6 +103,18 @@ public class ViewRideLocationsActivity extends AppCompatActivity implements
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        loc = getIntent();
+        acceptRequest = (Button) findViewById(R.id.acceptRequest);
+        acceptRequest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("Accept Request", "Accept Request Called");
+                acceptRequest();
+            }
+        });
+
 
         // Creating the instance for the Map Fragment
         mapFragment = SupportMapFragment.newInstance();
@@ -286,17 +311,49 @@ public class ViewRideLocationsActivity extends AppCompatActivity implements
         if (location != null) {
             Toast.makeText(this, "GPS location was found!", Toast.LENGTH_SHORT).show();
 
-            // Getting user's current location
-            latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+            /*
+             * Rider's Location
+             */
 
             // Zooming
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(loc.getDoubleExtra("latitude", 0), loc.getDoubleExtra("longitude", 0)), 15);
 
             // Taking user to its location with animate camera
             map.animateCamera(cameraUpdate);
 
+            map.addMarker(new MarkerOptions()
+                          .position(new LatLng(loc.getDoubleExtra("latitude", 0), loc.getDoubleExtra("longitude", 0)))
+                          .title("Rider Location"));
+
+
+            /*
+             * Driver's Location
+             */
+
+            latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+            CameraUpdate driverLoc = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+
+            // Taking user to its location with animate camera
+            map.animateCamera(driverLoc);
+
             // Setting up marker
-            setUpMarker(Utils.SET_PICKUP_LOCATION);
+            //setUpMarker(Utils.SET_PICKUP_LOCATION);
+
+            map.addMarker(new MarkerOptions()
+                          .position(latLng)
+                          .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+                          .showInfoWindow();
+
+            /*
+             * Showing all markers on the map
+             */
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            builder.include(new LatLng(loc.getDoubleExtra("latitude", 0), loc.getDoubleExtra("longitude", 0)));
+            builder.include(latLng);
+            LatLngBounds bounds = builder.build();
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
 
         } else {
 
@@ -548,12 +605,49 @@ public class ViewRideLocationsActivity extends AppCompatActivity implements
      */
     private void setUpMarker(String title) {
 
-        markerOptions = new MarkerOptions();
-        map.clear();
-        markerOptions.position(latLng);
-        markerOptions.title(title);
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
-        map.addMarker(markerOptions).showInfoWindow();
+       //TODO : Placed markers code here
+    }
+
+
+    /**
+     * Accept Request
+     */
+    private void acceptRequest() {
+
+        Log.d("requesterUsername", loc.getStringExtra("requesterusername"));
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Requests");
+        query.whereEqualTo("requesterUsername",loc.getStringExtra("requesterusername"));
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, ParseException e) {
+                if(e == null) {
+
+                    if(objects.size() > 0) {
+
+                        for(ParseObject object : objects) {
+
+                            object.put("driverUsername", ParseUser.getCurrentUser().getUsername());
+                            object.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    if(e == null) {
+                                        Intent mapIntent = new Intent(Intent.ACTION_VIEW,
+                                                Uri.parse("http://maps.google.com/maps/?addr=" + loc.getDoubleExtra("latitude",0) + "," + loc.getDoubleExtra("longitude",0)));
+                                        startActivity(mapIntent);
+                                    }
+                                }
+                            });
+
+
+                        }
+
+                    }
+
+                }
+            }
+        });
+
     }
 
 }

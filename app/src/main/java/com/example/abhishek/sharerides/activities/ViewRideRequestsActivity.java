@@ -109,8 +109,11 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                //Intent loc = new Intent(getApplicationContext(), ViewRideLocationsActivity.class);
-                //TODO : Pass the data to the new activity to show rider and driver location
+                Intent loc = new Intent(getApplicationContext(), ViewRideLocationsActivity.class);
+                loc.putExtra("requesterusername", userNames.get(position));
+                loc.putExtra("latitude", lat.get(position));
+                loc.putExtra("longitude", lng.get(position));
+                startActivity(loc);
 
             }
         });
@@ -149,7 +152,7 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
 
                                 listViewData.add(distanceOneDP.toString() + " Miles ");
 
-                                userNames.add(object.getString("requesterUserName"));
+                                userNames.add(object.getString("requesterUsername"));
                                 lat.add(object.getParseGeoPoint("requesterLocation").getLatitude());
                                 lng.add(object.getParseGeoPoint("requesterLocation").getLongitude());
 
