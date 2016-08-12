@@ -124,6 +124,14 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
 
 
         final ParseGeoPoint userLocation = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
+
+        /* Saving Driver Location to User's DB Table */
+        ParseUser.getCurrentUser().put("location", userLocation);
+        ParseUser.getCurrentUser().saveInBackground();
+
+
+
+
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Requests");
         query.whereDoesNotExist("driverUsername");
         query.whereNear("requesterLocation", userLocation);
@@ -272,17 +280,6 @@ public class ViewRideRequestsActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationManager.removeUpdates(this);
     }
 
     @Override

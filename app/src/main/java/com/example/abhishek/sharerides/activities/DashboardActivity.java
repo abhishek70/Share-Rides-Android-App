@@ -37,6 +37,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
@@ -73,6 +74,12 @@ public class DashboardActivity extends AppCompatActivity implements
 
     private MarkerOptions markerOptions;
     private LatLng latLng;
+    private boolean requestActive = false;
+    private String driverUsername = "";
+    private String showWaitTime = "";
+    ParseGeoPoint driverLocation = new ParseGeoPoint(0,0);
+    private LatLng driverLoc;
+
 
     /**
 	 * Define a request code to send to Google Play services This code is
@@ -123,6 +130,35 @@ public class DashboardActivity extends AppCompatActivity implements
         } else {
 
             Toast.makeText(this, "Error - Map Fragment was null!!", Toast.LENGTH_SHORT).show();
+        }
+
+        if(requestActive == false) {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Requests");
+            query.whereEqualTo("requesterUsername", ParseUser.getCurrentUser().getUsername());
+            query.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if(e == null) {
+
+                        if(objects.size() > 0) {
+
+                            for(ParseObject object : objects) {
+
+                                requestActive = true;
+
+                                if(object.get("driverUsername") != null) {
+
+                                    driverUsername = object.getString("driverUsername");
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+            });
         }
     }
 
@@ -354,6 +390,15 @@ public class DashboardActivity extends AppCompatActivity implements
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
         latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        // Zooming
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+
+        // Taking user to its location with animate camera
+        map.animateCamera(cameraUpdate);
+
+        // Setting up marker
+        setUpMarker(Utils.SET_PICKUP_LOCATION);
     }
 
 
@@ -563,11 +608,14 @@ public class DashboardActivity extends AppCompatActivity implements
 
         if(!action.equals(Utils.CANCEL_RIDE)) {
 
+            requestActive = true;
+
             // Call func ff the user request for the ride
             sendDriverRequest();
 
         } else {
 
+            requestActive = false;
             // Call func if the user wants to cancel the ride request
             cancelDriverRequest();
 
@@ -702,12 +750,92 @@ public class DashboardActivity extends AppCompatActivity implements
      */
     private void setUpMarker(String title) {
 
-        markerOptions = new MarkerOptions();
-        map.clear();
-        markerOptions.position(latLng);
-        markerOptions.title(title);
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
-        map.addMarker(markerOptions).showInfoWindow();
+        if(!requestActive){
+
+            markerOptions = new MarkerOptions();
+            map.clear();
+            markerOptions.position(latLng);
+            markerOptions.title(title);
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
+            map.addMarker(markerOptions).showInfoWindow();
+
+        } else {
+
+            if(!driverUsername.equals("")){
+
+                ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
+                userQuery.whereEqualTo("username", driverUsername);
+                userQuery.findInBackground(new FindCallback<ParseUser>() {
+                    @Override
+                    public void done(List<ParseUser> objects, ParseException e) {
+                        if(e == null){
+
+                            if(objects.size() > 0) {
+
+                                for(ParseUser driver : objects) {
+
+                                    driverLocation = driver.getParseGeoPoint("location");
+
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                });
+
+                if(driverLocation.getLatitude() != 0 && driverLocation.getLongitude() != 0){
+
+                    Log.d("Appinfo", driverLocation.toString());
+
+                    Double distanceInMiles = driverLocation.distanceInMilesTo(new ParseGeoPoint(latLng.latitude, latLng.longitude));
+                    Double distanceOneDP  = (double) Math.round(distanceInMiles * 10) / 10;
+
+                   // Todo : Needs to calculate time from the speed
+                    Double distance = distanceOneDP;
+                    double speed = 30.0d; // kmph
+
+                    double speed_in_meters_per_minute = ( speed * 1000 ) / distance; // mpm
+
+                    // now calculate time in minutes
+                    double time = (double)distance / speed_in_meters_per_minute ;
+
+
+                    Log.d("Test", String.valueOf(time));
+
+                    showWaitTime = "Your driver is";
+
+                }
+
+                map.clear();
+
+                markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title(showWaitTime);
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
+                map.addMarker(markerOptions).showInfoWindow();
+
+                driverLoc = new LatLng(driverLocation.getLatitude(), driverLocation.getLongitude());
+                map.addMarker(new MarkerOptions()
+                    .position(driverLoc)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+                /*
+                 * Showing all markers on the map
+                 */
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(driverLoc);
+                builder.include(latLng);
+                LatLngBounds bounds = builder.build();
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+
+            }
+
+        }
+
+
     }
 
 }
